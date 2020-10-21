@@ -1,0 +1,15 @@
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/CMakeFiles/install/strip.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/CMakeFiles/install/local.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/CMakeFiles/list_install_components.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/CMakeFiles/install.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/src/CMakeFiles/install/strip.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/src/CMakeFiles/install/local.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/src/CMakeFiles/install.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/src/CMakeFiles/list_install_components.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/src/CMakeFiles/MyFirstComp.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/src/CMakeFiles/ICES__home_salabeta_robocomp_components_fdiazfor_Robotica_chocachoca_src.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/src/CMakeFiles/edit_cache.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/src/CMakeFiles/rebuild_cache.dir
+/home/salabeta/robocomp/components/fdiazfor/Robotica/chocachoca/cmake-build-debug/src/CMakeFiles/MyFirstComp_autogen.dir
