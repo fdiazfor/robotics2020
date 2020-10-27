@@ -8,3 +8,4 @@ Component MyFirstComp{
     };
 language cpp11;
 gui Qt(QWidget);
+};
