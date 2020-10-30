@@ -29,33 +29,11 @@
 
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
+#include <Eigen/Dense>
 template <typename T>
-struct Target
-{
-    T content;
-    std::mutex my_mutex;
-    bool active = false;
 
-    void put(const T &data)
-    {
-        std::lock_guard<std::mutex> guard(my_mutex);
-        content = data;   // generic type must be copy-constructable
-        active = true;
-    }
-    std::optional<T> get()
-    {
-        std::lock_guard<std::mutex> guard(my_mutex);
-        if(active)
-            return content;
-        else
-            return {};
-    }
-    void set_task_finished()
-    {
-        std::lock_guard<std::mutex> guard(my_mutex);
-        active = false;
-    }
-}
+enum Estado{avanzar,pared,rotar,parar};
+
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -71,10 +49,45 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+
 private:
 	std::shared_ptr < InnerModel > innerModel;
 	bool startup_check_flag;
 
+    struct Target
+    {
+        T content;
+        std::mutex my_mutex;
+        bool active = false;
+
+        void put(const T &data)
+        {
+            std::lock_guard<std::mutex> guard(my_mutex);
+            content = data;   // generic type must be copy-constructable
+            active = true;
+        }
+        std::optional<T> get()
+        {
+            std::lock_guard<std::mutex> guard(my_mutex);
+            if(active)
+                return content;
+            else
+                return {};
+        }
+        void set_task_finished()
+        {
+            std::lock_guard<std::mutex> guard(my_mutex);
+            active = false;
+        }
+    }
+
+    Tuple<Eigen::Vector2f> target;
+    Target t1;
+    Estado est;
+    void objetivo(float dist);
+    void avanzar(float threshold, RoboCompLaser::TLaserData ldata,float beta,float alpha,float dist));
+    void pared(float threshold,  RoboCompLaser::TLaserData ldata , int i, int j);
+    void rotar(float threshold,  RoboCompLaser::TLaserData ldata, int i, int j, float alpha, float target);
 };
 
 #endif
