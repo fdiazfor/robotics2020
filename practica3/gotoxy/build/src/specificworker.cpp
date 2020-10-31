@@ -83,14 +83,16 @@ void SpecificWorker::compute()
 	//  std::cout << "Error reading from Camera" << e << std::endl;
 	//}
     const float threshold = 200;
+    std::optional<std::tuple<float,float>>> t;
     RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();
     std::sort( ldata.begin(), ldata.end(), [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; });
     try{
-        RoboCompDifferentialRobot::TBaseState bState;
-        differentialrobot_proxy->getBaseState(bState);
+        RoboCompGenericBase::TBaseState& bState=NULL;
+        this->differentialrobot_proxy->getBaseState(bState);
     if(auto t=target.get();t.hasValue())
     {
-        tw=t.value();
+        auto tw=t.value();
+        std::cout<<tw.x" "tw.z<<std::endl;
         Eigen::Vector2f rw(bState.x,bState.z);
         Eigen::Matrix2f rot;
         rot<<cos(bState.alpha),sin(bState.alpha),sin(bState.alpha),-cos(bState.alpha);
@@ -170,7 +172,7 @@ int SpecificWorker::startup_check()
 void SpecificWorker::RCISMousePicker_setPick(RoboCompRCISMousePicker::Pick myPick)
 {
 //subscribesToCODE
-    t1.put(myPick);
+    t1.put(std::make_tuple(myPick.x,myPick.z));
 }
 
 

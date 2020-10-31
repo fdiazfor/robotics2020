@@ -79,9 +79,9 @@ private:
             std::lock_guard<std::mutex> guard(my_mutex);
             active = false;
         }
-    }
+    };
 
-    Tuple<Eigen::Vector2f> target;
+    std::make_tuple<float,float>coord;
     Target t1;
     Estado est;
     void objetivo(float dist);
