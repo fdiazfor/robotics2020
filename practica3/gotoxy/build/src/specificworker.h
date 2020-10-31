@@ -30,10 +30,9 @@
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
 #include <Eigen/Dense>
+
+enum Estado{avanzar,pared,rotar};
 template <typename T>
-
-enum Estado{avanzar,pared,rotar,parar};
-
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -41,8 +40,6 @@ public:
 	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
-
-
 	void RCISMousePicker_setPick(RoboCompRCISMousePicker::Pick myPick);
 
 public slots:
@@ -53,6 +50,11 @@ public slots:
 private:
 	std::shared_ptr < InnerModel > innerModel;
 	bool startup_check_flag;
+
+    void objetivo(float dist);
+    void avanzar(float threshold, RoboCompLaser::TLaserData ldata,float beta,float alpha,float dist);
+    void pared(float threshold,  RoboCompLaser::TLaserData ldata);
+    void rotar(float threshold,  RoboCompLaser::TLaserData ldata, float alpha, float target);
 
     struct Target
     {
@@ -80,14 +82,9 @@ private:
             active = false;
         }
     };
-
-    std::make_tuple<float,float>coord;
+    std::tuple<float,float> coord;
     Target t1;
     Estado est;
-    void objetivo(float dist);
-    void avanzar(float threshold, RoboCompLaser::TLaserData ldata,float beta,float alpha,float dist));
-    void pared(float threshold,  RoboCompLaser::TLaserData ldata , int i, int j);
-    void rotar(float threshold,  RoboCompLaser::TLaserData ldata, int i, int j, float alpha, float target);
 };
 
 #endif
