@@ -24,6 +24,7 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+	this->est=Estado::rotar;
 }
 
 /**
@@ -64,13 +65,13 @@ void SpecificWorker::initialize(int period)
 void SpecificWorker::compute()
 {
     const float threshold = 200;
-    std::optional< std::make_tuple<float,float> > t;
+    std::make_tuple<float,float> t;
     RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();
     std::sort( ldata.begin(), ldata.end(), [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; });
     try{
         RoboCompGenericBase::TBaseState& bState;
         this->differentialrobot_proxy->getBaseState(bState);
-    if(auto t=t1.get();t.hasValue())
+    if(auto t=t1.get();t.hasValue()||t1.active)
     {
         auto tw=t.value();
         std::cout<<tw.x" "tw.z<<std::endl;
@@ -91,6 +92,10 @@ void SpecificWorker::compute()
             case Estado::rotar:
                 this->rotar(threshold, ldata, bState.alpha, target);
             break;
+            case Estado::objetivo:
+                this->objetivo();
+                break;
+
         }
 
 
@@ -100,7 +105,6 @@ void SpecificWorker::compute()
 }
 
 void SpecificWorker::avanzar(float threshold, RoboCompLaser::TLaserData ldata,float beta,float alpha,float dist) {
-    std::cout << "________avanzar_______" << std::endl;
     if (threshold > ldata.front().dist) {
         this->est = Estado::pared;
         differentialrobot_proxy->setSpeedBase(0, 0);
@@ -112,6 +116,7 @@ void SpecificWorker::avanzar(float threshold, RoboCompLaser::TLaserData ldata,fl
     }
     else if(dist <0.5){
         differentialrobot_proxy->setSpeedBase(0, 0);
+        this->est = Estado::objetivo;
     }
     differentialrobot_proxy->setSpeedBase(1000, 0);
 }
@@ -129,7 +134,21 @@ void SpecificWorker::rotar(float threshold,  RoboCompLaser::TLaserData ldata, fl
     differentialrobot_proxy->setSpeedBase(5, 2);
 }
 
+void SpecificWorker::pared(float threshold,  RoboCompLaser::TLaserData ldata ) {
+    float rot = 2;
+    if (threshold < ldata.front().dist){
+        differentialrobot_proxy->setSpeedBase(0, 0);
+        this->est = Estado::avanzar;
+        return;
+    }
+    differentialrobot_proxy->setSpeedBase(5, rot);
+}
 
+void SpecificWorker::objetivo(){
+    t1.set_task_finished();
+    differentialrobot_proxy->setSpeedBase(0,0);
+    this->est = Estado::avanzar;
+}
 
 int SpecificWorker::startup_check()
 {
@@ -144,10 +163,6 @@ void SpecificWorker::RCISMousePicker_setPick(RoboCompRCISMousePicker::Pick myPic
 {
 //subscribesToCODE
     t1.put(std::make_tuple(myPick.x,myPick.z));
-}
-
-void SpecificWorker<T>::pared(float threshold, RoboCompLaser::TLaserData ldata) {
-
 }
 
 

@@ -14,7 +14,7 @@
 #include <innermodel/innermodel.h>
 #include <Eigen/Dense>
 
-enum Estado{avanzar,pared,rotar};
+enum Estado{avanzar,pared,rotar,objetivo};
 template <typename T>
 class SpecificWorker : public GenericWorker
 {
@@ -34,10 +34,10 @@ private:
 	std::shared_ptr < InnerModel > innerModel;
 	bool startup_check_flag;
 
-    void objetivo(float dist);
     void avanzar(float threshold, RoboCompLaser::TLaserData ldata,float beta,float alpha,float dist);
     void pared(float threshold,  RoboCompLaser::TLaserData ldata);
     void rotar(float threshold,  RoboCompLaser::TLaserData ldata, float alpha, float target);
+    void objetivo();
 
     struct Target
     {
@@ -65,7 +65,7 @@ private:
             active = false;
         }
     };
-    std::tuple<float,float> coord;
+
     Target t1;
     Estado est;
 };
