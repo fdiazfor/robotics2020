@@ -16,14 +16,13 @@
  *    You should have received a copy of the GNU General Public License
  *    along with RoboComp.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "specificworker.h"
 
-/**
-* \brief Default constructor
-*/
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+	this->est=Estado::rotar;
 }
 
 /**
@@ -45,15 +44,8 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 //		innerModel = std::make_shared(innermodel_path);
 //	}
 //	catch(const std::exception &e) { qFatal("Error reading config params"); }
-
-
-
-
-
-
 	return true;
 }
-
 void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
@@ -64,27 +56,96 @@ void SpecificWorker::initialize(int period)
 	}
 	else
 	{
-		timer.start(Period);
+		time.start(this->Period);
 	}
-
 }
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
-	
+    const float threshold = 200;
+    std::make_tuple<float,float> t;
+    RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();
+    std::sort( ldata.begin(), ldata.end(), [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; });
+    try{
+        RoboCompGenericBase::TBaseState& bState;
+        this->differentialrobot_proxy->getBaseState(bState);
+    if(auto t=t1.get();t.hasValue()||t1.active)
+    {
+        auto tw=t.value();
+        std::cout<<tw.x" "tw.z<<std::endl;
+        Eigen::Vector2f rw(bState.x,bState.z);
+        Eigen::Matrix2f rot;
+        rot<<std::cos(bState.alpha),std::sin(bState.alpha),tsd::sin(bState.alpha),-(std::cos(bState.alpha));
+        auto tr=rot*(tw-rw);
+        auto beta=std::atan(tw.x,tw.y);
+        auto dist=tr.norm();
+
+        switch (this->est){
+            case Estado::avanzar:
+                this->avanzar(threshold, ldata,beta,bState.alpha);
+            break;
+            case Estado::pared:
+                this->pared(threshold, ldata);
+            break;
+            case Estado::rotar:
+                this->rotar(threshold, ldata, bState.alpha, target);
+            break;
+            case Estado::objetivo:
+                this->objetivo();
+                break;
+
+        }
+
+
+    }
+
+    }catch(const Ice::Exception &e)
+}
+
+void SpecificWorker::avanzar(float threshold, RoboCompLaser::TLaserData ldata,float beta,float alpha,float dist) {
+    if (threshold > ldata.front().dist) {
+        this->est = Estado::pared;
+        differentialrobot_proxy->setSpeedBase(0, 0);
+        return;
+    } else if (abs(beta-alpha)>0.01) {
+        this->est = Estado::rotar;
+        differentialrobot_proxy->setSpeedBase(0, 0);
+        return;
+    }
+    else if(dist <0.5){
+        differentialrobot_proxy->setSpeedBase(0, 0);
+        this->est = Estado::objetivo;
+    }
+    differentialrobot_proxy->setSpeedBase(1000, 0);
+}
+
+void SpecificWorker::rotar(float threshold,  RoboCompLaser::TLaserData ldata, float alpha, float target) {
+    if (threshold > ldata.front().dist){
+        differentialrobot_proxy->setSpeedBase(0, 0);
+        this->est = Estado::pared;
+        return;
+    }else if(abs((alpha- target)) < 0.01 ){
+        differentialrobot_proxy->setSpeedBase(0, 0);
+        this->est = Estado::avanzar;
+        return;
+    }
+    differentialrobot_proxy->setSpeedBase(5, 2);
+}
+
+void SpecificWorker::pared(float threshold,  RoboCompLaser::TLaserData ldata ) {
+    float rot = 2;
+    if (threshold < ldata.front().dist){
+        differentialrobot_proxy->setSpeedBase(0, 0);
+        this->est = Estado::avanzar;
+        return;
+    }
+    differentialrobot_proxy->setSpeedBase(5, rot);
+}
+
+void SpecificWorker::objetivo(){
+    t1.set_task_finished();
+    differentialrobot_proxy->setSpeedBase(0,0);
+    this->est = Estado::avanzar;
 }
 
 int SpecificWorker::startup_check()
@@ -99,9 +160,8 @@ int SpecificWorker::startup_check()
 void SpecificWorker::RCISMousePicker_setPick(RoboCompRCISMousePicker::Pick myPick)
 {
 //subscribesToCODE
-
+    t1.put(std::make_tuple(myPick.x,myPick.z));
 }
-
 
 
 /**************************************/
