@@ -1,7 +1,7 @@
 import "DifferentialRobot.idsl";
 import "Laser.idsl";
 import "RCISMousePicker.idsl";
-Component MyFirstComp{
+Component gotoxy{
     Communications{
         requires DifferentialRobot, Laser;
         subscribesTo RCISMousePicker;
@@ -9,3 +9,4 @@ Component MyFirstComp{
 language Cpp11;
 gui Qt(QWidget);
 };
+
