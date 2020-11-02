@@ -48,61 +48,60 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 }
 void SpecificWorker::initialize(int period)
 {
-	std::cout << "Initialize worker" << std::endl;
-	this->Period = period;
-	if(this->startup_check_flag)
-	{
-		this->startup_check();
-	}
-	else
-	{
-		time.start(this->Period);
-	}
+    std::cout << "Initialize worker" << std::endl;
+    this->Period = period;
+    if(this->startup_check_flag)
+    {
+        this->startup_check();
+    }
+    else
+    {
+        timer.start(Period);
+    }
 }
 
 void SpecificWorker::compute()
 {
     const float threshold = 200;
-    std::make_tuple<float,float> t;
+    Eigen::Vector2f t(0.0, 0.0);
     RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();
     std::sort( ldata.begin(), ldata.end(), [](RoboCompLaser::TData a, RoboCompLaser::TData b){ return     a.dist < b.dist; });
     try{
-        RoboCompGenericBase::TBaseState& bState;
+        RoboCompGenericBase::TBaseState bState;
         this->differentialrobot_proxy->getBaseState(bState);
-    if(auto t=t1.get();t.hasValue()||t1.active)
+    if(auto t=t1.get();t.has_value() ||t1.active)
     {
         auto tw=t.value();
-        std::cout<<tw.x" "tw.z<<std::endl;
+        std::cout<<tw.x()<<" "<<tw.y()<<std::endl;
         Eigen::Vector2f rw(bState.x,bState.z);
         Eigen::Matrix2f rot;
-        rot<<std::cos(bState.alpha),std::sin(bState.alpha),tsd::sin(bState.alpha),-(std::cos(bState.alpha));
+        rot<<std::cos(bState.alpha),std::sin(bState.alpha),std::sin(bState.alpha),-(std::cos(bState.alpha));
         auto tr=rot*(tw-rw);
-        auto beta=std::atan(tw.x,tw.y);
+        auto beta=std::atan2( tw.x(),tw.y());
         auto dist=tr.norm();
 
         switch (this->est){
             case Estado::avanzar:
-                this->avanzar(threshold, ldata,beta,bState.alpha);
+                this->avanzar(threshold, ldata, beta, bState.alpha, dist);
             break;
             case Estado::pared:
                 this->pared(threshold, ldata);
             break;
             case Estado::rotar:
-                this->rotar(threshold, ldata, bState.alpha, target);
+                this->rotar(threshold, ldata, bState.alpha, beta);
             break;
             case Estado::objetivo:
                 this->objetivo();
-                break;
-
+            break;
         }
 
 
     }
 
-    }catch(const Ice::Exception &e)
+    }catch(const std::exception &e) { qFatal("Error reading config params"); }
 }
 
-void SpecificWorker::avanzar(float threshold, RoboCompLaser::TLaserData ldata,float beta,float alpha,float dist) {
+void SpecificWorker::avanzar(float threshold, RoboCompLaser::TLaserData ldata,float beta,float alpha, float dist) {
     if (threshold > ldata.front().dist) {
         this->est = Estado::pared;
         differentialrobot_proxy->setSpeedBase(0, 0);
@@ -124,7 +123,7 @@ void SpecificWorker::rotar(float threshold,  RoboCompLaser::TLaserData ldata, fl
         differentialrobot_proxy->setSpeedBase(0, 0);
         this->est = Estado::pared;
         return;
-    }else if(abs((alpha- target)) < 0.01 ){
+    }else if(abs(alpha- target) < 0.01 ){
         differentialrobot_proxy->setSpeedBase(0, 0);
         this->est = Estado::avanzar;
         return;
@@ -160,7 +159,7 @@ int SpecificWorker::startup_check()
 void SpecificWorker::RCISMousePicker_setPick(RoboCompRCISMousePicker::Pick myPick)
 {
 //subscribesToCODE
-    t1.put(std::make_tuple(myPick.x,myPick.z));
+    t1.put( Eigen::Vector2f(myPick.x,myPick.z));
 }
 
 

@@ -32,7 +32,6 @@
 #include <Eigen/Dense>
 
 enum Estado{avanzar,pared,rotar,objetivo};
-template <typename T>
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -50,12 +49,14 @@ public slots:
 private:
     std::shared_ptr < InnerModel > innerModel;
     bool startup_check_flag;
+    time_t time;
 
-    void avanzar(float threshold, RoboCompLaser::TLaserData ldata,float beta,float alpha,float dist);
+    void avanzar(float threshold, RoboCompLaser::TLaserData ldata,float beta,float alpha, float dist);
     void pared(float threshold,  RoboCompLaser::TLaserData ldata);
     void rotar(float threshold,  RoboCompLaser::TLaserData ldata, float alpha, float target);
     void objetivo();
 
+    template <typename T>
     struct Target
     {
         T content;
@@ -83,7 +84,8 @@ private:
         }
     };
 
-    Target t1;
+    Target<Eigen::Vector2f> t1;
+
     Estado est;
 };
 
