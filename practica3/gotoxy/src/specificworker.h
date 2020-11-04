@@ -30,8 +30,6 @@
 #include <genericworker.h>
 #include <innermodel/innermodel.h>
 #include <Eigen/Dense>
-
-enum Estado{avanzar, rotar, IDDLE};
 class SpecificWorker : public GenericWorker
 {
 Q_OBJECT
@@ -49,12 +47,6 @@ public slots:
 private:
     std::shared_ptr < InnerModel > innerModel;
     bool startup_check_flag;
-    time_t time;
-
-    void avanzar(float beta, float dist);
-    void rotar(float target);
-    void IDDLE();
-
     template <typename T>
     struct Target
     {
@@ -84,8 +76,6 @@ private:
     };
 
     Target<Eigen::Vector2f> t1;
-
-    Estado est;
 };
 
 #endif

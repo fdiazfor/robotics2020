@@ -22,7 +22,6 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
-	this->est=Estado::rotar;
 }
 
 /**
@@ -46,6 +45,7 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 //	catch(const std::exception &e) { qFatal("Error reading config params"); }
 	return true;
 }
+
 void SpecificWorker::initialize(int period)
 {
     std::cout << "Initialize worker" << std::endl;
@@ -76,48 +76,20 @@ void SpecificWorker::compute()
         auto beta=std::atan2( tr.x(), tr.y());
         auto dist=tr.norm();
 
-        switch (this->est){
-            case Estado::avanzar:
-                this->avanzar(beta, dist);
-            break;
-            case Estado::rotar:
-                this->rotar( beta);
-            break;
-            case Estado::IDDLE:
-                this->IDDLE();
-            break;
+        if (abs(beta) > 0.001) //rotar
+        {
+            differentialrobot_proxy->setSpeedBase(0, beta);
+        } else if ( dist > 150) //avanzar
+        {
+            differentialrobot_proxy->setSpeedBase(1000, 0);
+        } else //IDDLE
+        {
+            t1.set_task_finished();
+            differentialrobot_proxy->setSpeedBase(0,0);
         }
     }
 
     }catch(const std::exception &e) { qFatal("Error reading config params"); }
-}
-
-void SpecificWorker::avanzar(float beta, float dist) {
-    if (abs(beta)>0.05) {
-        this->est = Estado::rotar;
-        differentialrobot_proxy->setSpeedBase(0, 0);
-        return;
-    }
-    else if(dist < 150){
-        differentialrobot_proxy->setSpeedBase(0, 0);
-        this->est = Estado::IDDLE;
-    }
-    differentialrobot_proxy->setSpeedBase(1000, 0);
-}
-
-void SpecificWorker::rotar(float target) {
-    if(fabs( target) < 0.05 ){
-        differentialrobot_proxy->setSpeedBase(0, 0);
-        this->est = Estado::avanzar;
-        return;
-    }
-    differentialrobot_proxy->setSpeedBase(0, target);
-}
-
-void SpecificWorker::IDDLE(){
-    t1.set_task_finished();
-    differentialrobot_proxy->setSpeedBase(0,0);
-    this->est = Estado::rotar;
 }
 
 int SpecificWorker::startup_check()
