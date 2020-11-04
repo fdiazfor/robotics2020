@@ -22,6 +22,8 @@
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
 	this->startup_check_flag = startup_check;
+	this->beta = 0.0;
+	this->dist = 0.0;
 }
 
 /**
@@ -68,18 +70,19 @@ void SpecificWorker::compute()
         this->differentialrobot_proxy->getBaseState(bState);
     if(auto t=t1.get();t.has_value() ||t1.active)
     {
+        /*
         auto tw=t.value();
         Eigen::Vector2f rw(bState.x,bState.z);
         Eigen::Matrix2f rot;
         rot<<std::cos(bState.alpha),-(std::sin(bState.alpha)),std::sin(bState.alpha),std::cos(bState.alpha);
         auto tr=rot*(tw-rw);
         auto beta=std::atan2( tr.x(), tr.y());
-        auto dist=tr.norm();
-
-        if (abs(beta) > 0.001) //rotar
+        auto dist=tr.norm();*/
+        calcular(bState, t.value());
+        if (abs(this->beta) > 0.05) //rotar
         {
             differentialrobot_proxy->setSpeedBase(0, beta);
-        } else if ( dist > 150) //avanzar
+        } else if (this->dist > 150) //avanzar
         {
             differentialrobot_proxy->setSpeedBase(1000, 0);
         } else //IDDLE
@@ -106,6 +109,15 @@ void SpecificWorker::RCISMousePicker_setPick(RoboCompRCISMousePicker::Pick myPic
 //subscribesToCODE
     t1.put( Eigen::Vector2f(myPick.x,myPick.z));
     std::cout<<myPick.x<<" "<<myPick.z<<std::endl;
+}
+
+void SpecificWorker::calcular(RoboCompGenericBase::TBaseState bState, auto tw) {
+    Eigen::Vector2f rw(bState.x,bState.z);
+    Eigen::Matrix2f rot;
+    rot<<std::cos(bState.alpha),-(std::sin(bState.alpha)),std::sin(bState.alpha),std::cos(bState.alpha);
+    auto tr=rot*(tw-rw);
+    this->beta=std::atan2( tr.x(), tr.y());
+    this->dist=tr.norm();
 }
 
 

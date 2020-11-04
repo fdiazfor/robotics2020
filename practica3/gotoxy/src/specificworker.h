@@ -47,6 +47,7 @@ public slots:
 private:
     std::shared_ptr < InnerModel > innerModel;
     bool startup_check_flag;
+    void calcular(RoboCompGenericBase::TBaseState bState, auto tw);
     template <typename T>
     struct Target
     {
@@ -74,8 +75,10 @@ private:
             active = false;
         }
     };
-
     Target<Eigen::Vector2f> t1;
+
+    float dist;
+    float beta;
 };
 
 #endif
