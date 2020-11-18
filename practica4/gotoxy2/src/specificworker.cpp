@@ -18,12 +18,11 @@
  */
 #include "specificworker.h"
 
-/**
-* \brief Default constructor
-*/
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
 {
-	this->startup_check_flag = startup_check;
+    this->startup_check_flag = startup_check;
+    this->beta = 0.0;
+    this->dist = 0.0;
 }
 
 /**
@@ -31,67 +30,66 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 */
 SpecificWorker::~SpecificWorker()
 {
-	std::cout << "Destroying SpecificWorker" << std::endl;
+    std::cout << "Destroying SpecificWorker" << std::endl;
 }
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-//	THE FOLLOWING IS JUST AN EXAMPLE
-//	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
-//	try
-//	{
-//		RoboCompCommonBehavior::Parameter par = params.at("InnerModelPath");
-//		std::string innermodel_path = par.value;
-//		innerModel = std::make_shared(innermodel_path);
-//	}
-//	catch(const std::exception &e) { qFatal("Error reading config params"); }
-
-
-
-
-
-
-	return true;
+//      THE FOLLOWING IS JUST AN EXAMPLE
+//      To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
+//      try
+//      {
+//              RoboCompCommonBehavior::Parameter par = params.at("InnerModelPath");
+//              std::string innermodel_path = par.value;
+//              innerModel = std::make_shared(innermodel_path);
+//      }
+//      catch(const std::exception &e) { qFatal("Error reading config params"); }
+    return true;
 }
 
 void SpecificWorker::initialize(int period)
 {
-	std::cout << "Initialize worker" << std::endl;
-	this->Period = period;
-	if(this->startup_check_flag)
-	{
-		this->startup_check();
-	}
-	else
-	{
-		timer.start(Period);
-	}
-
+    std::cout << "Initialize worker" << std::endl;
+    this->Period = period;
+    if(this->startup_check_flag)
+    {
+        this->startup_check();
+    }
+    else
+    {
+        timer.start(Period);
+    }
 }
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
-	
+    Eigen::Vector2f t(0.0, 0.0);
+    try{
+        RoboCompGenericBase::TBaseState bState;
+        this->differentialrobot_proxy->getBaseState(bState);
+        RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();
+        if(auto t=t1.get();t.has_value() ||t1.active)
+        {
+            float xa = 0, ya = 0;
+            for (const auto &l : ldata){
+                if(l.dist < 3000){
+                    Eigen::Vector2f obs = convertirCartesianas(l.dist, l.angle);
+                    xa += obs.x()/(l.dist/10);
+                    ya += obs.y()/(l.dist/10);
+                }
+            }
+            Eigen::Vector2f result (t.value().x() + xa, t.value().y() + ya);
+            calcular(result, bState);
+            std::cout<<"Distancia: "<<this->dist<<" Angulo: "<<this->beta<<endl;
+        }
+    }catch(const std::exception &e) {qFatal("Error reading config params"); }
 }
 
 int SpecificWorker::startup_check()
 {
-	std::cout << "Startup check" << std::endl;
-	QTimer::singleShot(200, qApp, SLOT(quit()));
-	return 0;
+    std::cout << "Startup check" << std::endl;
+    QTimer::singleShot(200, qApp, SLOT(quit()));
+    return 0;
 }
 
 
@@ -99,9 +97,26 @@ int SpecificWorker::startup_check()
 void SpecificWorker::RCISMousePicker_setPick(RoboCompRCISMousePicker::Pick myPick)
 {
 //subscribesToCODE
-
+    t1.put( Eigen::Vector2f(myPick.x,myPick.z));
+    std::cout<<myPick.x<<" "<<myPick.z<<std::endl;
 }
 
+void SpecificWorker::calcular(Eigen::Vector2f result, RoboCompGenericBase::TBaseState bState) {
+
+    Eigen::Vector2f rw(bState.x,bState.z);
+    Eigen::Matrix2f rot;
+    rot<<std::cos(bState.alpha),-(std::sin(bState.alpha)),std::sin(bState.alpha),std::cos(bState.alpha);
+    auto tr=rot*(result-rw);
+    this->beta=std::atan2(tr.x(), tr.y());
+    this->dist=tr.norm();
+}
+
+Eigen::Vector2f SpecificWorker::convertirCartesianas(float dist, float angle) {
+    float x, y;
+    x = std::sin(angle);
+    y = std::cos(angle);
+    return Eigen::Vector2f(-x, -y);
+}
 
 
 /**************************************/
@@ -125,11 +140,66 @@ void SpecificWorker::RCISMousePicker_setPick(RoboCompRCISMousePicker::Pick myPic
 // this->laser_proxy->getLaserConfData(...)
 // this->laser_proxy->getLaserData(...)
 
+/*
+	 * <!--OBSTACLES-->
+		<transform id="caja1" tx="0" tz="1000" ty="0" >
+			<plane id="cajaMesh1" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>
+
+		<transform id="caja2" tx="1300" tz="1200" ty="0" >
+			<plane id="cajaMesh2" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>-->
+
+		<transform id="caja3" tx="-1300" tz="-1200" ty="0" >
+			<plane id="cajaMesh3" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>-->
+
+		<transform id="caja4" tx="1300" tz="-1200" ty="0" >
+			<plane id="cajaMesh4" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>
+
+		<transform id="caja5" tx="0" tz="-1500" ty="0" >
+			<plane id="cajaMesh5" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>
+
+		<transform id="caja6" tx="-1300" tz="1200" ty="0" >
+			<plane id="cajaMesh6" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>
+
+		<!-- <axes id="axis" length="1000"/>
+		 -->
+ */
 /**************************************/
 // From the RoboCompLaser you can use this types:
 // RoboCompLaser::LaserConfData
 // RoboCompLaser::TData
 
+/*
+ * 		<!--OBSTACLES-->
+		<transform id="caja1" tx="0" tz="1000" ty="0" >
+			<plane id="cajaMesh1" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>
+
+		<transform id="caja2" tx="1300" tz="1200" ty="0" >
+			<plane id="cajaMesh2" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>-->
+
+		<transform id="caja3" tx="-1300" tz="-1200" ty="0" >
+			<plane id="cajaMesh3" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>-->
+
+		<transform id="caja4" tx="1300" tz="-1200" ty="0" >
+			<plane id="cajaMesh4" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>
+
+		<transform id="caja5" tx="0" tz="-1500" ty="0" >
+			<plane id="cajaMesh5" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>
+
+		<transform id="caja6" tx="-1300" tz="1200" ty="0" >
+			<plane id="cajaMesh6" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
+		</transform>
+ */
 /**************************************/
 // From the RoboCompRCISMousePicker you can use this types:
 // RoboCompRCISMousePicker::Pick
