@@ -47,6 +47,8 @@ public slots:
 private:
     std::shared_ptr < InnerModel > innerModel;
     bool startup_check_flag;
+    const float MAX_ADV_SPEED = 1000;
+    const float S = pow(0.5, 2)/log(0.1);
     void calcular(Eigen::Vector2f result, RoboCompGenericBase::TBaseState bState);
     Eigen::Vector2f convertirCartesianas(float dist , float angle);
     template <typename T>

@@ -63,7 +63,6 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-    Eigen::Vector2f t(0.0, 0.0);
     try{
         RoboCompGenericBase::TBaseState bState;
         this->differentialrobot_proxy->getBaseState(bState);
@@ -72,15 +71,18 @@ void SpecificWorker::compute()
         {
             float xa = 0, ya = 0;
             for (const auto &l : ldata){
-                if(l.dist < 3000){
+                if(l.dist < 2500){
                     Eigen::Vector2f obs = convertirCartesianas(l.dist, l.angle);
-                    xa += obs.x()/(l.dist/10);
-                    ya += obs.y()/(l.dist/10);
+                    xa += obs.x()/pow(l.dist/100, 2);
+                    ya += obs.y()/pow(l.dist/100, 2);
                 }
             }
             Eigen::Vector2f result (t.value().x() + xa, t.value().y() + ya);
             calcular(result, bState);
             std::cout<<"Distancia: "<<this->dist<<" Angulo: "<<this->beta<<endl;
+            float reduce_speed_turning = exp(pow(this->beta, 2)/S);
+            float speed_close_target = std::fmin(this->dist/1000, 1);
+            differentialrobot_proxy->setSpeedBase(MAX_ADV_SPEED*reduce_speed_turning*speed_close_target, this->beta);
         }
     }catch(const std::exception &e) {qFatal("Error reading config params"); }
 }
@@ -113,8 +115,8 @@ void SpecificWorker::calcular(Eigen::Vector2f result, RoboCompGenericBase::TBase
 
 Eigen::Vector2f SpecificWorker::convertirCartesianas(float dist, float angle) {
     float x, y;
-    x = std::sin(angle);
-    y = std::cos(angle);
+    x = dist*std::sin(angle);
+    y = dist*std::cos(angle);
     return Eigen::Vector2f(-x, -y);
 }
 
