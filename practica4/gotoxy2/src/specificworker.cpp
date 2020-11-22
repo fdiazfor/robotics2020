@@ -1,3 +1,4 @@
+
 /*
  *    Copyright (C) 2020 by YOUR NAME HERE
  *
@@ -67,22 +68,12 @@ void SpecificWorker::compute()
         RoboCompGenericBase::TBaseState bState;
         this->differentialrobot_proxy->getBaseState(bState);
         RoboCompLaser::TLaserData ldata = laser_proxy->getLaserData();
-        if(auto t=t1.get();t.has_value() ||t1.active)
+        if(auto t=this->t1.get();t.has_value() || this->t1.active)
         {
-            float xa = 0, ya = 0;
-            for (const auto &l : ldata){
-                if(l.dist < 2500){
-                    Eigen::Vector2f obs = convertirCartesianas(l.dist, l.angle);
-                    xa += obs.x()/pow(l.dist/100, 2);
-                    ya += obs.y()/pow(l.dist/100, 2);
-                }
-            }
-            Eigen::Vector2f result (t.value().x() + xa, t.value().y() + ya);
-            calcular(result, bState);
-            std::cout<<"Distancia: "<<this->dist<<" Angulo: "<<this->beta<<endl;
-            float reduce_speed_turning = exp(pow(this->beta, 2)/S);
-            float speed_close_target = std::fmin(this->dist/1000, 1);
-            differentialrobot_proxy->setSpeedBase(MAX_ADV_SPEED*reduce_speed_turning*speed_close_target, this->beta);
+            Eigen::Vector2f obs = this->obtenerObstaculos(ldata);
+            Eigen::Vector2f result (t->x() + obs.x(), t->y() + obs.y());
+            this->calcular(result, bState);
+            this->mover();
         }
     }catch(const std::exception &e) {qFatal("Error reading config params"); }
 }
@@ -120,6 +111,32 @@ Eigen::Vector2f SpecificWorker::convertirCartesianas(float dist, float angle) {
     return Eigen::Vector2f(-x, -y);
 }
 
+Eigen::Vector2f SpecificWorker::obtenerObstaculos(RoboCompLaser::TLaserData ldata){
+    Eigen::Vector2f resobs(0, 0);
+    float xa = 0, ya = 0;
+    for (const auto &l : ldata){
+        if(l.dist < 3000){
+            Eigen::Vector2f obs = convertirCartesianas(l.dist, l.angle);
+            xa = xa + obs.x()/(pow(l.dist, 2)/5000);
+            ya = ya + obs.y()/(pow(l.dist, 2)/5000);
+        }
+    }
+    resobs(xa ,ya );
+    return resobs;
+}
+
+void SpecificWorker::mover(){
+    std::cout<<"Distancia: "<<this->dist<<" Angulo: "<<this->beta<<endl;
+    float reduce_speed_turning = exp(pow(this->beta, 2)/S);
+    float speed_close_target = std::fmin(this->dist/1000, 1);
+    differentialrobot_proxy->setSpeedBase(MAX_ADV_SPEED*reduce_speed_turning*speed_close_target, this->beta);
+    if(this->dist < 150){
+        this->t1.set_task_finished();
+        this->differentialrobot_proxy->setSpeedBase(0, 0);
+        cout<<"______objetivo alcanzado_____"<<endl;
+    }
+}
+
 
 /**************************************/
 // From the RoboCompDifferentialRobot you can call this methods:
@@ -147,27 +164,21 @@ Eigen::Vector2f SpecificWorker::convertirCartesianas(float dist, float angle) {
 		<transform id="caja1" tx="0" tz="1000" ty="0" >
 			<plane id="cajaMesh1" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>
-
 		<transform id="caja2" tx="1300" tz="1200" ty="0" >
 			<plane id="cajaMesh2" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>-->
-
 		<transform id="caja3" tx="-1300" tz="-1200" ty="0" >
 			<plane id="cajaMesh3" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>-->
-
 		<transform id="caja4" tx="1300" tz="-1200" ty="0" >
 			<plane id="cajaMesh4" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>
-
 		<transform id="caja5" tx="0" tz="-1500" ty="0" >
 			<plane id="cajaMesh5" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>
-
 		<transform id="caja6" tx="-1300" tz="1200" ty="0" >
 			<plane id="cajaMesh6" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>
-
 		<!-- <axes id="axis" length="1000"/>
 		 -->
  */
@@ -181,23 +192,18 @@ Eigen::Vector2f SpecificWorker::convertirCartesianas(float dist, float angle) {
 		<transform id="caja1" tx="0" tz="1000" ty="0" >
 			<plane id="cajaMesh1" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>
-
 		<transform id="caja2" tx="1300" tz="1200" ty="0" >
 			<plane id="cajaMesh2" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>-->
-
 		<transform id="caja3" tx="-1300" tz="-1200" ty="0" >
 			<plane id="cajaMesh3" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>-->
-
 		<transform id="caja4" tx="1300" tz="-1200" ty="0" >
 			<plane id="cajaMesh4" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>
-
 		<transform id="caja5" tx="0" tz="-1500" ty="0" >
 			<plane id="cajaMesh5" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>
-
 		<transform id="caja6" tx="-1300" tz="1200" ty="0" >
 			<plane id="cajaMesh6" nx="1" size="400,400,400"  texture="/home/robocomp/robocomp/files/osgModels/textures/Metal.jpg" collide="1"/>
 		</transform>

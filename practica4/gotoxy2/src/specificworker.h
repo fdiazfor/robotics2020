@@ -51,6 +51,8 @@ private:
     const float S = pow(0.5, 2)/log(0.1);
     void calcular(Eigen::Vector2f result, RoboCompGenericBase::TBaseState bState);
     Eigen::Vector2f convertirCartesianas(float dist , float angle);
+    Eigen::Vector2f obtenerObstaculos(RoboCompLaser::TLaserData ldata);
+    void mover();
     template <typename T>
     struct Target
     {
