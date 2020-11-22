@@ -73,7 +73,7 @@ void SpecificWorker::compute()
             Eigen::Vector2f obs = this->obtenerObstaculos(ldata);
             Eigen::Vector2f result (t->x() + obs.x(), t->y() + obs.y());
             this->calcular(result, bState);
-            this->mover();
+            this->mover(bState, t->x(), t->y());
         }
     }catch(const std::exception &e) {qFatal("Error reading config params"); }
 }
@@ -112,7 +112,6 @@ Eigen::Vector2f SpecificWorker::convertirCartesianas(float dist, float angle) {
 }
 
 Eigen::Vector2f SpecificWorker::obtenerObstaculos(RoboCompLaser::TLaserData ldata){
-    Eigen::Vector2f resobs(0, 0);
     float xa = 0, ya = 0;
     for (const auto &l : ldata){
         if(l.dist < 3000){
@@ -121,16 +120,17 @@ Eigen::Vector2f SpecificWorker::obtenerObstaculos(RoboCompLaser::TLaserData ldat
             ya = ya + obs.y()/(pow(l.dist, 2)/5000);
         }
     }
-    resobs(xa ,ya );
+    Eigen::Vector2f resobs(xa, ya);
     return resobs;
 }
 
-void SpecificWorker::mover(){
+void SpecificWorker::mover(RoboCompGenericBase::TBaseState bState, float xobj, float yobj){
     std::cout<<"Distancia: "<<this->dist<<" Angulo: "<<this->beta<<endl;
     float reduce_speed_turning = exp(pow(this->beta, 2)/S);
     float speed_close_target = std::fmin(this->dist/1000, 1);
     differentialrobot_proxy->setSpeedBase(MAX_ADV_SPEED*reduce_speed_turning*speed_close_target, this->beta);
-    if(this->dist < 150){
+    float distObj = abs(bState.x - xobj) + abs(bState.z - yobj);
+    if( distObj < 300 ){
         this->t1.set_task_finished();
         this->differentialrobot_proxy->setSpeedBase(0, 0);
         cout<<"______objetivo alcanzado_____"<<endl;

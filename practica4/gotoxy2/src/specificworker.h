@@ -52,7 +52,7 @@ private:
     void calcular(Eigen::Vector2f result, RoboCompGenericBase::TBaseState bState);
     Eigen::Vector2f convertirCartesianas(float dist , float angle);
     Eigen::Vector2f obtenerObstaculos(RoboCompLaser::TLaserData ldata);
-    void mover();
+    void mover(RoboCompGenericBase::TBaseState bState, float xobj, float yobj);
     template <typename T>
     struct Target
     {
