@@ -116,8 +116,8 @@ Eigen::Vector2f SpecificWorker::obtenerObstaculos(RoboCompLaser::TLaserData ldat
     for (const auto &l : ldata){
         if(l.dist < 3000){
             Eigen::Vector2f obs = convertirCartesianas(l.dist, l.angle);
-            xa = xa + obs.x()/(pow(l.dist, 2)/5000);
-            ya = ya + obs.y()/(pow(l.dist, 2)/5000);
+            xa = xa + obs.x()/(pow(l.dist, 2)/3000);
+            ya = ya + obs.y()/(pow(l.dist, 2)/3000);
         }
     }
     Eigen::Vector2f resobs(xa, ya);
