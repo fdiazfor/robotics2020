@@ -98,9 +98,12 @@ void SpecificWorker::initialize(int period)
     graphicsView->fitInView(scene.sceneRect(), Qt::KeepAspectRatio);
 
     // grid
-    //grid.create_graphic_items(scene);
+    grid.create_graphic_items(scene);
     // recorrer las cajas y poner a ocupado todos las celdas que caigan
-    // recorrer las pared y poner las celdas a rojo
+    // recorrer
+    //
+    //
+    // las pared y poner las celdas a rojo
 
     this->Period = 100;
     if (this->startup_check_flag) {
