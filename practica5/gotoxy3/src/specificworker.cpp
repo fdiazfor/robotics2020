@@ -100,16 +100,57 @@ void SpecificWorker::initialize(int period)
     // grid
     grid.create_graphic_items(scene);
     // recorrer las cajas y poner a ocupado todos las celdas que caigan
+
     // recorrer
     //
     //
     // las pared y poner las celdas a rojo
+    int i;
+    for(i=-grid.getWidth/2;i<grid.getWidth/2;i++) {
+        grid.set_Occupied(i, grid.getWidth / 2);
+    }
+    //3 for's más
+        grid.set_Occupied(i,-grid.getWidth/2);
+        grid.set_Occupied(grid.getWidth/2,i);
+        grid.set_Occupied(-grid.getWidth/2,i);
+
+
+
 
     this->Period = 100;
     if (this->startup_check_flag) {
         this->startup_check();
     } else {
         timer.start(Period);
+    }
+}
+
+
+void SpecificWorker::fill_grid_with_obstacles()
+{
+    for(int i=1; i<10; i++)  //max number of boxes
+    {
+        auto caja = "caja" + QString::number(i);
+        auto node = innerModel->getNode(caja);
+        auto mesh = innerModel->getNode("cajaMesh" + QString::number(i));
+        if(node and mesh)
+        {
+            auto pose = innerModel->transform("world", caja);
+            auto plane = dynamic_cast<InnerModelPlane*>(mesh);
+            int x = pose.x();
+            int z = pose.z();
+            int width = plane->depth;
+            int depth = plane->width;
+
+            /****
+
+            AQUI EL CODIGO DE MODIFICACIÓN DEL GRID
+            *****/
+            for(){
+
+            }
+
+        }
     }
 }
 

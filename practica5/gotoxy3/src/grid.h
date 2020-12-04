@@ -32,11 +32,15 @@ class Grid
             bool occupied = false;
             QGraphicsItem * paint_cell = nullptr;
             int cx, cy;
+            //Añadir elemento gráfico para pintar texto
+            //Crear en el constructor e inicializar a comillas comillas
             int dist = 0; //dist vecinos
         };
 
         std::vector<std::vector<Value>> array;
-
+//Hacer método que me de lso vecinos de una celda que te de vecinos libres()que no están ocupadosos
+//El metodo devuelve una lista con los vecinos que sean libres y que no estén en la lista 1.
+//hacer un metodo con while que se llama desde donde se hace el click
         void create_graphic_items(QGraphicsScene &scene)
         {
             for (auto &row : array)
@@ -47,6 +51,8 @@ class Grid
                     elem.paint_cell->setPos(elem.cx, elem.cy);
                 }
         }
+
+        void
     /*
  * Inicializamos el array a false, osea, no ocupadas.
  */
@@ -70,10 +76,6 @@ public:
     {
        auto [nx, ny] = this->transformar(x,y);
        this->array[nx][ny] = v;
-       if(v.occupied)
-           array[nx][ny].paint_cell->setColor(QColor("Red"));
-       else
-           array[nx][ny].paint_cell->setColor(QColor("Green"));
     }
     /**
      * devolvemos el valor de la coordenada x,z
@@ -97,13 +99,10 @@ public:
         return this->array[nx][ny].occupied;
     }
 
-    void set_Occupied(int x, int y, bool val){
+    void set_Occupied(int x, int y){
         auto[nx, ny] = this->transformar(x, y);
-        this->array[nx][ny].occupied = val;
-        if(val)
-            array[nx][ny].paint_cell->setColor(QColor("Red"));
-        else
-            array[nx][ny].paint_cell->setColor(QColor("Green"));
+        this->array[nx][ny].occupied = true;
+        array[nx][ny].put_cell->setBrust(QColor("Red"));
     }
 
     void set_Dist(int x, int y, int ndist){
@@ -111,10 +110,14 @@ public:
         this->array[nx][ny].dist = ndist;
     }
 
+    int get_Width(){
+        return width;
+    }
+
 private:
     std::tuple<int,int> transformar(int x, int z){
-        int nx = ((width/tile)/5000)*x + (width/tile)/2;
-        int ny = ((width/tile)/5000)*z + (width/tile)/2;
+        int nx = (x/tile) + (width/tile)/2;
+        int ny = (z/tile) + (width/tile)/2;
         return std::make_tuple(nx, ny);
     }
 

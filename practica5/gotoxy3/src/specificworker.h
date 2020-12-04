@@ -108,6 +108,7 @@ private:
     QGraphicsItem *laser_polygon = nullptr;
     const float ROBOT_LENGTH = 400;
     void draw_things(const RoboCompGenericBase::TBaseState &bState, const RoboCompLaser::TLaserData &ldata, const std::vector<tupla> &puntos, const tupla &front);
+    void fill_grid_with_obstacles();
     std::vector<QGraphicsEllipseItem*> arcs_vector;
 
     //grid
