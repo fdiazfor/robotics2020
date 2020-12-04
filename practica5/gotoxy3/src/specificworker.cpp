@@ -100,23 +100,12 @@ void SpecificWorker::initialize(int period)
     // grid
     grid.create_graphic_items(scene);
     // recorrer las cajas y poner a ocupado todos las celdas que caigan
-
+    this->fill_grid_with_obstacles();
     // recorrer
     //
     //
     // las pared y poner las celdas a rojo
-    int i;
-    for(i=-grid.getWidth/2;i<grid.getWidth/2;i++) {
-        grid.set_Occupied(i, grid.getWidth / 2);
-    }
-    //3 for's más
-        grid.set_Occupied(i,-grid.getWidth/2);
-        grid.set_Occupied(grid.getWidth/2,i);
-        grid.set_Occupied(-grid.getWidth/2,i);
-
-
-
-
+    this->fill_grid_with_walls();
     this->Period = 100;
     if (this->startup_check_flag) {
         this->startup_check();
@@ -125,6 +114,20 @@ void SpecificWorker::initialize(int period)
     }
 }
 
+void SpecificWorker::fill_grid_with_walls(){
+    int i;
+    for(i=-grid.getWidth/2;i<grid.getWidth/2;i++)
+        grid.set_Occupied(i, grid.getWidth / 2);
+
+    for(i=-grid.getWidth/2;i<grid.getWidth/2;i++)
+        grid.set_Occupied(i,-grid.getWidth/2);
+
+    for(i=-grid.getWidth/2;i<grid.getWidth/2;i++)
+        grid.set_Occupied(grid.getWidth/2,i);
+
+    for(i=-grid.getWidth/2;i<grid.getWidth/2;i++)
+        grid.set_Occupied(-grid.getWidth/2,i);
+}
 
 void SpecificWorker::fill_grid_with_obstacles()
 {
@@ -146,7 +149,10 @@ void SpecificWorker::fill_grid_with_obstacles()
 
             AQUI EL CODIGO DE MODIFICACIÓN DEL GRID
             *****/
-            for(){
+            for(int coordi=x-width;coordi<x+width;j++){
+                for(int coordj=z-depth;coordj<z+depth;j++){
+                    this->grid.set_Occupied(coordi,coordj);
+                }
 
             }
 

@@ -102,7 +102,8 @@ public:
     void set_Occupied(int x, int y){
         auto[nx, ny] = this->transformar(x, y);
         this->array[nx][ny].occupied = true;
-        array[nx][ny].put_cell->setBrust(QColor("Red"));
+        Qbrush cellColor(QColor("Red"),NULL);
+        array[nx][ny].put_cell->setBrush(cellCcolor,Qt::SolidPattern);
     }
 
     void set_Dist(int x, int y, int ndist){
