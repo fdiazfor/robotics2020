@@ -83,6 +83,9 @@ public slots:
     void initialize(int period);
 
 private:
+
+    using MyGrid = Grid<int, -2500, int, 5000, int, 100>;
+    MyGrid grid;
     std::shared_ptr<InnerModel> innerModel;
     bool startup_check_flag;
 
@@ -113,7 +116,8 @@ private:
     std::vector<QGraphicsEllipseItem*> arcs_vector;
 
     //grid
-    Grid<int, -2500, int, 5000, int, 100> grid;
+
+
 };
 
 #endif

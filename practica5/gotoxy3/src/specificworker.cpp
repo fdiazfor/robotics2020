@@ -86,7 +86,6 @@ void SpecificWorker::initialize(int period)
     brush.setStyle(Qt::SolidPattern);
     robot_polygon = (QGraphicsItem *) scene.addPolygon(poly2, QPen(QColor("DarkRed")), brush);
     robot_polygon->setZValue(5);
-
     RoboCompGenericBase::TBaseState bState;
     try
     {
@@ -96,7 +95,6 @@ void SpecificWorker::initialize(int period)
     }
     catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; }
     graphicsView->fitInView(scene.sceneRect(), Qt::KeepAspectRatio);
-
     // grid
     grid.create_graphic_items(scene);
     // recorrer las cajas y poner a ocupado todos las celdas que caigan
@@ -105,7 +103,9 @@ void SpecificWorker::initialize(int period)
     //
     //
     // las pared y poner las celdas a rojo
+    std::cout<<"No ha petado"<<std::endl;
     this->fill_grid_with_walls();
+    std::cout<<"Aqui tampoco"<<std::endl;
     this->Period = 100;
     if (this->startup_check_flag) {
         this->startup_check();
@@ -116,17 +116,25 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::fill_grid_with_walls(){
     int i;
-    for(i=-grid.getWidth/2;i<grid.getWidth/2;i++)
-        grid.set_Occupied(i, grid.getWidth / 2);
+    for(i=-grid.get_Width()/2;i<grid.get_Width()/2;i++)
+        grid.set_Occupied(i, grid.get_Width()/2 - 1);
 
-    for(i=-grid.getWidth/2;i<grid.getWidth/2;i++)
-        grid.set_Occupied(i,-grid.getWidth/2);
+    std::cout<<"No peta 1"<<std::endl;
 
-    for(i=-grid.getWidth/2;i<grid.getWidth/2;i++)
-        grid.set_Occupied(grid.getWidth/2,i);
+    for(i=-grid.get_Width()/2;i<grid.get_Width()/2;i++)
+        grid.set_Occupied(i,-grid.get_Width()/2);
 
-    for(i=-grid.getWidth/2;i<grid.getWidth/2;i++)
-        grid.set_Occupied(-grid.getWidth/2,i);
+    std::cout<<"No peta 2"<<std::endl;
+
+    for(i=-grid.get_Width()/2 + 1;i<grid.get_Width()/2;i++)
+        grid.set_Occupied(grid.get_Width()/2 - 1,i);
+
+    std::cout<<"No peta 3"<<std::endl;
+
+    for(i=-grid.get_Width()/2 + 1;i<grid.get_Width()/2;i++)
+        grid.set_Occupied(-grid.get_Width()/2,i);
+
+    std::cout<<"No peta 4"<<std::endl;
 }
 
 void SpecificWorker::fill_grid_with_obstacles()
@@ -149,13 +157,12 @@ void SpecificWorker::fill_grid_with_obstacles()
 
             AQUI EL CODIGO DE MODIFICACIÓN DEL GRID
             *****/
-            for(int coordi=x-width;coordi<x+width;j++){
-                for(int coordj=z-depth;coordj<z+depth;j++){
+            for(int coordi=x - width/2;(coordi<x+ width/2);coordi++){
+                for(int coordj=z- depth/2;(coordj<z+ depth/2); coordj++){
                     this->grid.set_Occupied(coordi,coordj);
                 }
 
             }
-
         }
     }
 }

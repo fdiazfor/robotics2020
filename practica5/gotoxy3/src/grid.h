@@ -30,11 +30,11 @@ class Grid
         struct Value
         {
             bool occupied = false;
-            QGraphicsItem * paint_cell = nullptr;
+            QGraphicsRectItem * paint_cell = nullptr;
             int cx, cy;
             //Añadir elemento gráfico para pintar texto
             //Crear en el constructor e inicializar a comillas comillas
-            int dist = 0; //dist vecinos
+            int dist = -1; //dist vecinos
         };
 
         std::vector<std::vector<Value>> array;
@@ -51,8 +51,6 @@ class Grid
                     elem.paint_cell->setPos(elem.cx, elem.cy);
                 }
         }
-
-        void
     /*
  * Inicializamos el array a false, osea, no ocupadas.
  */
@@ -89,6 +87,20 @@ public:
         return  this->array[nx][ny];
     }
 
+    std::list<Value> get_Neighbors(Value v, int dist){
+        std::list<Value> list;
+        for(auto[dk, dl]: list_neighbors){
+            int x = v.cx + dk;
+            int y = v.cy + dl;
+            bool limits = x > -width/2 && x < width/2  && y > -width/2 && y < width/2;
+            if(limits && !this->array[x][y].occupied && this->array[x][y].dist == -1) {
+                this->array[x][y].dist = dist;
+                list.push_front(this->array[x][y]);
+            }
+        }
+        return list;
+    }
+
     int get_Dist(int x, int y){
         auto [nx, ny] = transformar(x, y);
         return this->array[nx][ny].dist;
@@ -102,8 +114,7 @@ public:
     void set_Occupied(int x, int y){
         auto[nx, ny] = this->transformar(x, y);
         this->array[nx][ny].occupied = true;
-        Qbrush cellColor(QColor("Red"),NULL);
-        array[nx][ny].put_cell->setBrush(cellCcolor,Qt::SolidPattern);
+        this->array[nx][ny].paint_cell->setBrush(QBrush(QColor("Red")));
     }
 
     void set_Dist(int x, int y, int ndist){
@@ -116,6 +127,7 @@ public:
     }
 
 private:
+    std::vector<std::tuple<int, int>> list_neighbors{{-1,-1}, {0, -1}, {1, -1}, {-1, 0}, {1,0}, {-1,1}, {0,1}, {-1,1}};
     std::tuple<int,int> transformar(int x, int z){
         int nx = (x/tile) + (width/tile)/2;
         int ny = (z/tile) + (width/tile)/2;
