@@ -55,6 +55,7 @@ class SpecificWorker : public GenericWorker {
         std::optional<T> get() {
             std::lock_guard<std::mutex> guard(mutex);
             if (not empty){
+                empty = true;
                 return data;
             } else
                 return {};
@@ -102,7 +103,7 @@ private:
     std::vector<tupla> calcularPuntos(float vOrigen,  float wOrigen);
     std::vector<tupla> ordenar(std::vector<tupla> vector, float x, float z);
     std::vector<tupla> obstaculos(std::vector<tupla> vector, float aph,const RoboCompLaser::TLaserData &ldata);
-    void dynamicWindowApproach(RoboCompGenericBase::TBaseState bState, RoboCompLaser::TLaserData &ldata);
+    std::vector <tupla> dynamicWindowApproach(RoboCompGenericBase::TBaseState bState, RoboCompLaser::TLaserData &ldata);
 
     //draw
     QGraphicsScene scene;
@@ -110,10 +111,18 @@ private:
     QGraphicsItem *robot_polygon = nullptr;
     QGraphicsItem *laser_polygon = nullptr;
     const float ROBOT_LENGTH = 400;
-    void draw_things(const RoboCompGenericBase::TBaseState &bState, const RoboCompLaser::TLaserData &ldata, const std::vector<tupla> &puntos, const tupla &front);
+    void draw_things(const RoboCompGenericBase::TBaseState &bState, const RoboCompLaser::TLaserData &ldata, const std::vector<tupla> &puntos);
     void fill_grid_with_obstacles();
     void fill_grid_with_walls();
+    void compute_navigation_function(float x, float y);
     std::vector<QGraphicsEllipseItem*> arcs_vector;
+
+    protected:
+        void resizeEvent(QResizeEvent * event)
+        {
+            graphicsView->fitInView(scene.sceneRect(), Qt::KeepAspectRatio);
+        }
+
 
     //grid
 

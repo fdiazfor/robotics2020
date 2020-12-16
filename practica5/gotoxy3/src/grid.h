@@ -22,7 +22,7 @@ class Grid
                 int l=0;
                 for (int j = hmin; j < width/2; j += tile, l++)
                 {
-                    array[k][l] = Value{false, nullptr, nullptr, i, j};
+                    array[k][l] = Value{false, nullptr, nullptr, i, j, k, l, -1};
                 }
             }
         };
@@ -33,9 +33,10 @@ class Grid
             QGraphicsRectItem * paint_cell = nullptr;
             QGraphicsTextItem * text_cell = nullptr;
             int cx, cy;
+            int k, l;
             //Añadir elemento gráfico para pintar texto
             //Crear en el constructor e inicializar a comillas comillas
-            int dist = -1; //dist vecinos
+            int dist; //dist vecinos
         };
 
         std::vector<std::vector<Value>> array;
@@ -113,16 +114,25 @@ public:
     std::list<Value> get_Neighbors(Value v, int dist){
         std::list<Value> list;
         for(auto[dk, dl]: list_neighbors){
-            int x = v.cx + dk;
-            int y = v.cy + dl;
-            bool limits = x > -width/2 && x < width/2  && y > -width/2 && y < width/2;
+            int x = v.k + dk;
+            int y = v.l + dl;
+            bool limits = x > -1 && x < 100  && y > -1 && y < 100;
             if(limits && !this->array[x][y].occupied && this->array[x][y].dist == -1) {
                 this->array[x][y].dist = dist;
-                this->array[x][y].text_cell.setText(QString::number(dist));
+                this->array[x][y].text_cell->setPlainText(QString::number(dist));
                 list.push_front(this->array[x][y]);
             }
         }
         return list;
+    }
+
+    void resetDistances(){
+        for (auto &row : array)
+            for (auto &elem : row)
+            {
+                elem.dist = -1;
+                elem.text_cell->setPlainText(QString::number(elem.dist));
+            }
     }
 
     int get_Dist(int x, int y){
