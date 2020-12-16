@@ -225,9 +225,6 @@ SpecificWorker::dynamicWindowApproach(RoboCompGenericBase::TBaseState bState, Ro
             auto[x, y, v, w, alpha] = vectorOrdenado.front();
             std::cout << __FUNCTION__ << " " << x << " " << y << " " << v << " " << w << " " << alpha
                       << std::endl;
-            if (w > M_PI) w = M_PI;
-            if (w < -M_PI) w = -M_PI;
-            if (v < 0) v = 0;
             try{  differentialrobot_proxy->setSpeedBase(std::min(v / 5, 1000.f), w); }
             catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; }
             draw_things(bState, ldata, vectorOrdenado);
@@ -400,11 +397,15 @@ void
  * @return vector ordenado
  */
     std::vector <SpecificWorker::tupla> SpecificWorker::ordenar(std::vector <tupla> vector, float x, float z) {
-        std::sort(vector.begin(), vector.end(), [x, z](const auto &a, const auto &b) {
-            const auto &[ax, ay, ca, cw, aa] = a;
-            const auto &[bx, by, ba, bw, bb] = b;
-            return ((ax - x) * (ax - x) + (ay - z) * (ay - z)) < ((bx - x) * (bx - x) + (by - z) * (by - z));
-        });
+        //std::sort(vector.begin(), vector.end(), [x, z](const auto &a, const auto &b) {
+        std::vector<std::tuple<float, tupla>> vf;
+        const float A = 1, B = 0.01;
+        for(auto &t: vector){
+            const auto &[ax, ay, ca, cw, aa] = t; //coordenadas x, y velocidad, giro, angulo que va a girar el robot
+            float dt =  ((ax - x) * (ax - x) + (ay - z) * (ay - z));
+            float dn = grid.get_Dist(ax, ay);
+            vf.push_back(std::make_tuple(dt*A+dn*B, t));
+        }
 
         return vector;
     }
