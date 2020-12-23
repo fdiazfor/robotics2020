@@ -195,10 +195,8 @@ vector<SpecificWorker::tupla>
 SpecificWorker::dynamicWindowApproach(RoboCompGenericBase::TBaseState bState, RoboCompLaser::TLaserData &ldata) {
     //coordenadas del target del mundo real al mundo del  robot
     Eigen::Vector2f tr = transformar_targetRW(bState);
-
-    //distancia que debe recorrer hasta el target
     auto dist = tr.norm();
-    if (dist < 50)
+    if ( dist < 100 )
     {
         differentialrobot_proxy->setSpeedBase(0, 0);
         target_buffer.set_task_finished();
@@ -451,13 +449,14 @@ void
 
     SpecificWorker::tupla SpecificWorker::obtenerMin(std::vector<tupla> vector , float x, float z){
         std::vector<std::tuple<float, tupla>> vf;
-        const float A = 1, B = 0.001;
+        const float A = 0.0001, B = 1, C = 0.001;
         for(auto &t: vector){
             const auto &[ax, ay, ca, cw, aa] = t; //coordenadas x, y velocidad, giro, angulo que va a girar el robot
             float dt =  ((ax - x) * (ax - x) + (ay - z) * (ay - z));
             float dn = grid.get_Dist(ax, ay);
-            if(dn != -1)
-                vf.push_back(std::make_tuple(dt*A+dn*B, t));
+            float da = abs(aa);
+            if(!grid.get_Occupied(ax, ay))
+                vf.push_back(std::make_tuple(dt*A + dn*B + da*C, t));
         }
 
         auto min = std::min_element(vf.begin(), vf.end(), []( auto &a, auto &b){ return std::get<0>(a) < std::get<0>(b); });
